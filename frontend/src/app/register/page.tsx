@@ -29,6 +29,8 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [establecimiento, setEstablecimiento] = useState("");
   const [curso, setCurso] = useState("");
+  const [usarClaveInstitucional, setUsarClaveInstitucional] = useState(false);
+  const [claveInstitucional, setClaveInstitucional] = useState("");
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -58,9 +60,32 @@ export default function RegisterPage() {
       return;
     }
 
+    if (usarClaveInstitucional && !claveInstitucional.trim()) {
+      setError("Debes ingresar la clave institucional.");
+      return;
+    }
+
     setLoading(true);
 
     try {
+      if (usarClaveInstitucional) {
+        const validacion = await fetch("/api/acceso-institucional", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            claveInstitucional: claveInstitucional.trim(),
+          }),
+        });
+
+        const resultado = (await validacion.json()) as { error?: string };
+
+        if (!validacion.ok) {
+          throw new Error(
+            resultado.error ?? "La clave institucional no es válida."
+          );
+        }
+      }
+
       // 1. Crear cuenta en Firebase Authentication
       const userCredential =
         await createUserWithEmailAndPassword(
@@ -99,6 +124,29 @@ export default function RegisterPage() {
         }
       );
 
+      if (usarClaveInstitucional) {
+        const idToken = await usuario.getIdToken();
+        const respuesta = await fetch("/api/acceso-institucional", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            idToken,
+            claveInstitucional: claveInstitucional.trim(),
+          }),
+        });
+
+        const resultado = (await respuesta.json()) as { error?: string };
+
+        if (!respuesta.ok) {
+          throw new Error(
+            resultado.error ?? "No se pudo validar la clave institucional."
+          );
+        }
+
+        router.push("/panel");
+        return;
+      }
+
       // 4. Cerrar sesión mientras espera autorización
       await signOut(auth);
 
@@ -113,7 +161,13 @@ export default function RegisterPage() {
 
       const firebaseError = err as {
         code?: string;
+        message?: string;
       };
+
+      if (firebaseError.message?.toLowerCase().includes("institucional")) {
+        setError(firebaseError.message);
+        return;
+      }
 
       switch (firebaseError.code) {
 
@@ -388,6 +442,45 @@ export default function RegisterPage() {
             </p>
           </div>
 
+          <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                checked={usarClaveInstitucional}
+                onChange={(e) => {
+                  setUsarClaveInstitucional(e.target.checked);
+                  if (!e.target.checked) setClaveInstitucional("");
+                }}
+                className="mt-1 h-4 w-4"
+              />
+              <span>
+                <span className="block font-medium text-blue-900">
+                  Tengo clave institucional del DAEM
+                </span>
+                <span className="block text-xs text-blue-700">
+                  Permite entrar inmediatamente sin esperar aprobación manual.
+                </span>
+              </span>
+            </label>
+
+            {usarClaveInstitucional && (
+              <div className="mt-4">
+                <label className="mb-2 block text-sm font-medium text-blue-900">
+                  Clave institucional
+                </label>
+                <input
+                  type="password"
+                  value={claveInstitucional}
+                  onChange={(e) => setClaveInstitucional(e.target.value)}
+                  autoComplete="off"
+                  required
+                  placeholder="Ingresa la clave entregada por el DAEM"
+                  className="w-full rounded-lg border bg-white p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            )}
+          </div>
+
           {/* ERROR */}
 
           {error && (
@@ -415,9 +508,9 @@ export default function RegisterPage() {
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
 
           <p className="text-sm text-blue-800 text-center">
-            🏫 Selecciona tu establecimiento.
-            Tu solicitud deberá ser autorizada
-            antes de poder utilizar TutorIA.
+            🏫 Selecciona tu establecimiento. Si tienes una clave institucional,
+            podrás entrar inmediatamente; de lo contrario, tu solicitud deberá
+            ser autorizada.
           </p>
 
         </div>
