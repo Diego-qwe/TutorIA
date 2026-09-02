@@ -27,35 +27,44 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleLogin(e: FormEvent<HTMLFormElement>) {
+  async function handleLogin(
+    e: FormEvent<HTMLFormElement>
+  ) {
     e.preventDefault();
 
     setError("");
 
     if (!email.trim() || !password.trim()) {
-      setError("Debes ingresar tu correo y contraseña.");
+      setError(
+        "Debes ingresar tu correo y contraseña."
+      );
       return;
     }
 
     setLoading(true);
 
     try {
-      const credencial = await signInWithEmailAndPassword(
-        auth,
-        email.trim(),
-        password
-      );
+      // 1. INICIAR SESIÓN
+      const credencial =
+        await signInWithEmailAndPassword(
+          auth,
+          email.trim(),
+          password
+        );
 
       const uid = credencial.user.uid;
 
+      // 2. BUSCAR PERFIL EN FIRESTORE
       const usuarioRef = doc(
         db,
         "usuarios",
         uid
       );
 
-      const usuarioSnap = await getDoc(usuarioRef);
+      const usuarioSnap =
+        await getDoc(usuarioRef);
 
+      // 3. COMPROBAR QUE EL PERFIL EXISTA
       if (!usuarioSnap.exists()) {
         await signOut(auth);
 
@@ -68,6 +77,18 @@ export default function LoginPage() {
 
       const datos = usuarioSnap.data();
 
+      // 4. COMPROBAR SI LA CUENTA ESTÁ ACTIVA
+      if (datos.activo === false) {
+        await signOut(auth);
+
+        setError(
+          "Tu cuenta se encuentra desactivada. Contacta al administrador de TutorIA."
+        );
+
+        return;
+      }
+
+      // 5. COMPROBAR AUTORIZACIÓN
       if (datos.autorizado !== true) {
         await signOut(auth);
 
@@ -78,7 +99,58 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/panel");
+      // 6. COMPROBAR ORGANIZACIÓN
+      // Las cuentas antiguas sin daemId seguirán funcionando
+      // para no bloquear usuarios de prueba.
+      if (
+        datos.daemId &&
+        datos.daemId !== "pelarco"
+      ) {
+        await signOut(auth);
+
+        setError(
+          "Esta cuenta no pertenece a esta plataforma educativa."
+        );
+
+        return;
+      }
+
+      // 7. LEER ROL
+      const rol =
+        datos.rol || "alumno";
+
+      // 8. REDIRECCIÓN SEGÚN ROL
+
+      // Administrador general del DAEM
+      if (rol === "admin_daem") {
+        router.replace("/admin");
+        return;
+      }
+
+      // Administrador normal
+      if (rol === "admin") {
+        router.replace("/admin");
+        return;
+      }
+
+      // Profesor
+      if (rol === "profesor") {
+        router.replace("/profesor");
+        return;
+      }
+
+      // Alumno
+      if (rol === "alumno") {
+        router.replace("/panel");
+        return;
+      }
+
+      // Rol desconocido
+      await signOut(auth);
+
+      setError(
+        "Tu cuenta tiene un rol no reconocido. Contacta al administrador."
+      );
 
     } catch (err: any) {
       console.error(
@@ -106,7 +178,7 @@ export default function LoginPage() {
         err.code === "auth/too-many-requests"
       ) {
         setError(
-          "Demasiados intentos. Espera un momento e inténtalo nuevamente."
+          "Demasiados intentos. Inténtalo nuevamente más tarde."
         );
 
       } else {
@@ -121,24 +193,38 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
+    <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
 
-        <h1 className="text-3xl font-bold text-center mb-2">
-          🤖 Iniciar sesión
-        </h1>
+      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
 
-        <p className="text-center text-gray-500 mb-6">
-          Entra a tu cuenta de TutorIA
-        </p>
+        <div className="mb-7 text-center">
+
+          <div className="mb-3 text-5xl">
+            🤖
+          </div>
+
+          <h1 className="text-3xl font-bold text-slate-900">
+            TutorIA
+          </h1>
+
+          <p className="mt-2 font-medium text-blue-600">
+            Plataforma Educativa Comunal
+          </p>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Acceso para estudiantes, docentes y administradores
+          </p>
+
+        </div>
 
         <form
           onSubmit={handleLogin}
-          className="space-y-4"
+          className="space-y-5"
         >
 
           <div>
-            <label className="block mb-2 font-medium">
+
+            <label className="mb-2 block font-medium text-slate-700">
               Correo electrónico
             </label>
 
@@ -151,12 +237,14 @@ export default function LoginPage() {
               }
               autoComplete="email"
               required
-              className="w-full border rounded-lg p-3"
+              className="w-full rounded-xl border border-slate-300 p-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
+
           </div>
 
           <div>
-            <label className="block mb-2 font-medium">
+
+            <label className="mb-2 block font-medium text-slate-700">
               Contraseña
             </label>
 
@@ -169,12 +257,13 @@ export default function LoginPage() {
               }
               autoComplete="current-password"
               required
-              className="w-full border rounded-lg p-3"
+              className="w-full rounded-xl border border-slate-300 p-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
+
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm">
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
               ⚠️ {error}
             </div>
           )}
@@ -182,36 +271,45 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+            className="w-full rounded-xl bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading
               ? "Ingresando..."
-              : "Ingresar"}
+              : "Ingresar a TutorIA"}
           </button>
 
         </form>
 
-        <p className="mt-6 text-center">
+        <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50 p-3 text-center">
+          <p className="text-sm text-blue-800">
+            🏫 Plataforma destinada a comunidades educativas
+          </p>
+        </div>
+
+        <p className="mt-6 text-center text-slate-600">
           ¿No tienes cuenta?{" "}
 
           <Link
             href="/register"
-            className="text-blue-600 hover:underline"
+            className="font-semibold text-blue-600 hover:underline"
           >
-            Regístrate
+            Solicitar acceso
           </Link>
         </p>
 
         <p className="mt-3 text-center">
+
           <Link
             href="/"
-            className="text-gray-500 hover:underline"
+            className="text-slate-500 hover:underline"
           >
             ← Volver a TutorIA
           </Link>
+
         </p>
 
       </div>
+
     </main>
   );
 }
