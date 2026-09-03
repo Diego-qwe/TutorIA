@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import {
   collection,
@@ -38,12 +38,24 @@ type Usuario = {
 
 const ESTABLECIMIENTOS = [
   {
+    id: "antares",
+    nombre: "Colegio Antares",
+  },
+  {
     id: "liceo-pelarco",
     nombre: "Liceo de Pelarco",
   },
   {
+    id: "san-sebastian",
+    nombre: "San Sebastián",
+  },
+  {
     id: "wilibaldo-nunez",
     nombre: "Wilibaldo Núñez",
+  },
+  {
+    id: "centinela",
+    nombre: "Centinela",
   },
   {
     id: "hernan-ciudad-inostroza",
@@ -76,6 +88,7 @@ function obtenerNombreEstablecimiento(
 
 export default function AdminPage() {
   const router = useRouter();
+  const pathname = usePathname();
 
   const [usuarios, setUsuarios] =
     useState<Usuario[]>([]);
@@ -159,16 +172,24 @@ export default function AdminPage() {
             const datos =
               adminSnap.data();
 
-            const esAdministrador =
-              datos.rol === "admin" ||
-              datos.rol === "admin_daem";
+            const esRutaAdmin =
+              pathname.startsWith("/admin");
+
+            const tieneAcceso = esRutaAdmin
+              ? datos.rol === "admin"
+              : datos.rol === "admin" ||
+                datos.rol === "admin_daem";
 
             if (
-              !esAdministrador ||
+              !tieneAcceso ||
               datos.autorizado !== true ||
               datos.activo === false
             ) {
-              router.replace("/panel");
+              router.replace(
+                datos.rol === "admin_daem"
+                  ? "/daem"
+                  : "/panel"
+              );
               return;
             }
 
@@ -185,7 +206,7 @@ export default function AdminPage() {
       );
 
     return () => cancelar();
-  }, [router]);
+  }, [pathname, router]);
 
   async function cambiarAutorizacion(
     uid: string,
