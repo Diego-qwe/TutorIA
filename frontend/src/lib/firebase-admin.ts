@@ -11,8 +11,16 @@ function getAdminApp() {
   const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
   const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n");
 
-  if (!projectId || !clientEmail || !privateKey) {
-    throw new Error("Faltan las credenciales privadas de Firebase Admin.");
+  const variablesFaltantes = [
+    !projectId && "FIREBASE_ADMIN_PROJECT_ID",
+    !clientEmail && "FIREBASE_ADMIN_CLIENT_EMAIL",
+    !privateKey && "FIREBASE_ADMIN_PRIVATE_KEY",
+  ].filter(Boolean);
+
+  if (variablesFaltantes.length > 0) {
+    throw new Error(
+      `Configuración institucional incompleta: falta ${variablesFaltantes.join(", ")}.`
+    );
   }
 
   return initializeApp({

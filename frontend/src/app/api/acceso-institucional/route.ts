@@ -52,8 +52,14 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Error autorizando acceso institucional:", error);
 
+    const mensaje =
+      error instanceof Error &&
+      error.message.startsWith("Configuración institucional incompleta:")
+        ? error.message
+        : "No se pudo validar el acceso institucional.";
+
     return NextResponse.json(
-      { error: "No se pudo validar el acceso institucional." },
+      { error: mensaje },
       { status: 500 }
     );
   }
