@@ -45,8 +45,16 @@ export default function PanelDaemPage() {
 
   const establecimientos: Establecimiento[] = [
     {
+      id: "san-sebastian",
+      nombre: "San Sebastián",
+    },
+    {
       id: "wilibaldo-nunez",
       nombre: "Wilibaldo Núñez",
+    },
+    {
+      id: "centinela",
+      nombre: "Centinela",
     },
     {
       id: "hernan-ciudad-inostroza",
@@ -59,6 +67,10 @@ export default function PanelDaemPage() {
     {
       id: "pangue-arriba",
       nombre: "Escuela Pangue Arriba",
+    },
+    {
+      id: "antares",
+      nombre: "Colegio Antares",
     },
     {
       id: "liceo-pelarco",
