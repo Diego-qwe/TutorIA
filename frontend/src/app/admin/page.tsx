@@ -8,7 +8,9 @@ import {
   doc,
   getDoc,
   getDocs,
+  query,
   updateDoc,
+  where,
 } from "firebase/firestore";
 
 import {
@@ -110,12 +112,34 @@ export default function AdminPage() {
     setEstablecimientoSeleccionado,
   ] = useState("todos");
 
-  async function cargarUsuarios() {
+  async function cargarUsuarios(
+    rolAdministrador: string,
+    daemId?: string
+  ) {
     try {
       setError("");
 
+      const usuariosRef = collection(
+        db,
+        "usuarios"
+      );
+
+      // Firestore exige que la consulta del DAEM incluya
+      // el mismo filtro que establecen las reglas de seguridad.
+      const consultaUsuarios =
+        rolAdministrador === "admin"
+          ? usuariosRef
+          : query(
+              usuariosRef,
+              where(
+                "daemId",
+                "==",
+                daemId || "pelarco"
+              )
+            );
+
       const snapshot = await getDocs(
-        collection(db, "usuarios")
+        consultaUsuarios
       );
 
       const lista: Usuario[] =
@@ -193,7 +217,10 @@ export default function AdminPage() {
               return;
             }
 
-            await cargarUsuarios();
+            await cargarUsuarios(
+              datos.rol,
+              datos.daemId
+            );
 
             setCargando(false);
 
