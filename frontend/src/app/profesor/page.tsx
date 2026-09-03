@@ -34,11 +34,8 @@ type DatosProfesor = {
 };
 
 const ESTABLECIMIENTOS: Record<string, string> = {
-  antares: "Colegio Antares",
   "liceo-pelarco": "Liceo de Pelarco",
-  "san-sebastian": "San Sebastián",
   "wilibaldo-nunez": "Wilibaldo Núñez",
-  centinela: "Centinela",
   "hernan-ciudad-inostroza": "Hernán Ciudad Inostroza",
   "pablo-correa-montt": "Pablo Correa Montt",
   "pangue-arriba": "Escuela Pangue Arriba",
