@@ -77,7 +77,8 @@ export default function DaemLayout({
 
         // Solo cuentas DAEM autorizadas de Pelarco
         if (
-          rol === "daem" &&
+          (rol === "daem" ||
+            rol === "admin_daem") &&
           autorizado &&
           activo &&
           daemId === "pelarco"
