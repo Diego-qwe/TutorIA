@@ -123,7 +123,7 @@ export default function LoginPage() {
 
       // Administrador general del DAEM
       if (rol === "admin_daem") {
-        router.replace("/admin");
+        router.replace("/daem");
         return;
       }
 
