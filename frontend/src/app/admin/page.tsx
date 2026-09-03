@@ -38,24 +38,12 @@ type Usuario = {
 
 const ESTABLECIMIENTOS = [
   {
-    id: "antares",
-    nombre: "Colegio Antares",
-  },
-  {
     id: "liceo-pelarco",
     nombre: "Liceo de Pelarco",
   },
   {
-    id: "san-sebastian",
-    nombre: "San Sebastián",
-  },
-  {
     id: "wilibaldo-nunez",
     nombre: "Wilibaldo Núñez",
-  },
-  {
-    id: "centinela",
-    nombre: "Centinela",
   },
   {
     id: "hernan-ciudad-inostroza",

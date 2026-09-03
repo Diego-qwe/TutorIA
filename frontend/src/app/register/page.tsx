@@ -311,27 +311,12 @@ export default function RegisterPage() {
               <option value="">
                 Selecciona tu establecimiento
               </option>
-
-              <option value="antares">
-                Colegio Antares
-              </option>
-
               <option value="liceo-pelarco">
                 Liceo de Pelarco
               </option>
-
-              <option value="san-sebastian">
-                San Sebastián
-              </option>
-
               <option value="wilibaldo-nunez">
                 Wilibaldo Núñez
               </option>
-
-              <option value="centinela">
-                Centinela
-              </option>
-
               <option value="hernan-ciudad-inostroza">
                 Hernán Ciudad Inostroza
               </option>
