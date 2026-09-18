@@ -44,38 +44,26 @@ export default function PanelDaemPage() {
     useState<VistaDetalle>("inicio");
 
   const establecimientos: Establecimiento[] = [
-    {
-      id: "san-sebastian",
-      nombre: "San Sebastián",
-    },
-    {
-      id: "wilibaldo-nunez",
-      nombre: "Wilibaldo Núñez",
-    },
-    {
-      id: "centinela",
-      nombre: "Centinela",
-    },
-    {
-      id: "hernan-ciudad-inostroza",
-      nombre: "Hernán Ciudad Inostroza",
-    },
-    {
-      id: "pablo-correa-montt",
-      nombre: "Pablo Correa Montt",
-    },
-    {
-      id: "pangue-arriba",
-      nombre: "Escuela Pangue Arriba",
-    },
-    {
-      id: "antares",
-      nombre: "Colegio Antares",
-    },
-    {
-      id: "liceo-pelarco",
-      nombre: "Liceo de Pelarco",
-    },
+    { id: "liceo-abate-molina", nombre: "Liceo Abate Molina" },
+    { id: "liceo-marta-donoso-espejo", nombre: "Liceo Marta Donoso Espejo" },
+    { id: "liceo-bicentenario-oriente", nombre: "Liceo Bicentenario Oriente" },
+    { id: "liceo-bicentenario-diego-portales", nombre: "Liceo Bicentenario Diego Portales" },
+    { id: "liceo-bicentenario-cultura-difusion-artistica", nombre: "Liceo Bicentenario de Cultura y Difusión Artística" },
+    { id: "liceo-carlos-condell", nombre: "Liceo Carlos Condell" },
+    { id: "liceo-tecnico-amelia-courbis", nombre: "Liceo Técnico Amelia Courbis" },
+    { id: "liceo-industrial-superior", nombre: "Liceo Industrial Superior" },
+    { id: "instituto-superior-comercio", nombre: "Instituto Superior de Comercio Enrique Maldonado Sepúlveda" },
+    { id: "complejo-educacional-javiera-carrera", nombre: "Complejo Educacional Javiera Carrera" },
+    { id: "escuela-panguilemo", nombre: "Escuela Panguilemo" },
+    { id: "escuela-carlos-spano", nombre: "Escuela Carlos Spano" },
+    { id: "escuela-juan-luis-sanfuentes", nombre: "Escuela Juan Luis Sanfuentes" },
+    { id: "escuela-prosperidad", nombre: "Escuela Prosperidad" },
+    { id: "escuela-las-americas", nombre: "Escuela Las Américas" },
+    { id: "escuela-huilquilemu", nombre: "Escuela Huilquilemu" },
+    { id: "escuela-espana", nombre: "Escuela España" },
+    { id: "escuela-san-miguel", nombre: "Escuela San Miguel" },
+    { id: "escuela-aurora-de-chile", nombre: "Escuela Aurora de Chile" },
+    { id: "escuela-el-eden", nombre: "Escuela El Edén" },
   ];
 
   useEffect(() => {
@@ -86,7 +74,7 @@ export default function PanelDaemPage() {
 
         const consulta = query(
           collection(db, "usuarios"),
-          where("daemId", "==", "pelarco")
+          where("daemId", "==", "talca")
         );
 
         const snapshot = await getDocs(consulta);
@@ -260,7 +248,7 @@ export default function PanelDaemPage() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-blue-200">
-                  TutorIA • DAEM Pelarco
+                  TutorIA • DAEM Talca
                 </p>
 
                 <h1 className="text-2xl font-bold">
@@ -416,7 +404,7 @@ export default function PanelDaemPage() {
           </p>
 
           <h1 className="mt-1 text-3xl font-bold">
-            Panel DAEM Pelarco
+            Panel DAEM Talca
           </h1>
 
           <p className="mt-2 text-blue-100">
@@ -450,7 +438,7 @@ export default function PanelDaemPage() {
               </h2>
 
               <p className="mt-2 text-slate-600">
-                Indicadores generales registrados para el DAEM de Pelarco.
+                Indicadores generales registrados para el DAEM de Talca.
               </p>
             </div>
 
@@ -551,7 +539,7 @@ export default function PanelDaemPage() {
                 </h3>
 
                 <p className="mt-2 text-sm text-slate-500">
-                  Comuna de Pelarco
+                  Comuna de Talca
                 </p>
 
                 <div className="mt-5 grid grid-cols-2 gap-3">
@@ -597,7 +585,7 @@ export default function PanelDaemPage() {
 
           <p className="mt-2 text-sm leading-6 text-blue-800">
             Los datos de estudiantes y profesores son obtenidos desde
-            Firestore mediante una consulta limitada al DAEM de Pelarco.
+            Firestore mediante una consulta limitada al DAEM de Talca.
           </p>
         </div>
       </section>
