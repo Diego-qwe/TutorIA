@@ -35,16 +35,14 @@ export default function LoginPage() {
     setError("");
 
     if (!email.trim() || !password.trim()) {
-      setError(
-        "Debes ingresar tu correo y contraseña."
-      );
+      setError("Debes ingresar tu correo y contraseña.");
       return;
     }
 
     setLoading(true);
 
     try {
-      // 1. INICIAR SESIÓN
+      // 1. Iniciar sesión con Firebase
       const credencial =
         await signInWithEmailAndPassword(
           auth,
@@ -54,7 +52,7 @@ export default function LoginPage() {
 
       const uid = credencial.user.uid;
 
-      // 2. BUSCAR PERFIL EN FIRESTORE
+      // 2. Buscar perfil del usuario
       const usuarioRef = doc(
         db,
         "usuarios",
@@ -64,12 +62,12 @@ export default function LoginPage() {
       const usuarioSnap =
         await getDoc(usuarioRef);
 
-      // 3. COMPROBAR QUE EL PERFIL EXISTA
+      // 3. Comprobar que exista el perfil
       if (!usuarioSnap.exists()) {
         await signOut(auth);
 
         setError(
-          "Tu cuenta todavía no ha sido autorizada por el administrador."
+          "No encontramos tu perfil en TutorIA."
         );
 
         return;
@@ -77,18 +75,18 @@ export default function LoginPage() {
 
       const datos = usuarioSnap.data();
 
-      // 4. COMPROBAR SI LA CUENTA ESTÁ ACTIVA
+      // 4. Comprobar si la cuenta está activa
       if (datos.activo === false) {
         await signOut(auth);
 
         setError(
-          "Tu cuenta se encuentra desactivada. Contacta al administrador de TutorIA."
+          "Tu cuenta se encuentra desactivada. Contacta al administrador del Colegio Antares."
         );
 
         return;
       }
 
-      // 5. COMPROBAR AUTORIZACIÓN
+      // 5. Comprobar autorización
       if (datos.autorizado !== true) {
         await signOut(auth);
 
@@ -99,86 +97,81 @@ export default function LoginPage() {
         return;
       }
 
-      // 6. COMPROBAR ORGANIZACIÓN
-      // Las cuentas antiguas sin daemId seguirán funcionando
-      // para no bloquear usuarios de prueba.
+      // 6. Comprobar que pertenezca al Colegio Antares
       if (
-        datos.daemId &&
-        datos.daemId !== "pelarco"
+        datos.establecimientoId &&
+        datos.establecimientoId !== "colegio-antares"
       ) {
         await signOut(auth);
 
         setError(
-          "Esta cuenta no pertenece a esta plataforma educativa."
+          "Esta cuenta no pertenece al Colegio Antares."
         );
 
         return;
       }
 
-      // 7. LEER ROL
-      const rol =
-        datos.rol || "alumno";
+      // 7. Leer rol
+      const rol = datos.rol || "alumno";
 
-      // 8. REDIRECCIÓN SEGÚN ROL
-
-      // Administrador general del DAEM
-      if (rol === "admin_daem") {
-        router.replace("/daem");
-        return;
-      }
-
-      // Administrador normal
-      if (rol === "admin") {
-        router.replace("/admin");
-        return;
-      }
-
-      // Profesor
+      // 8. Profesor
       if (rol === "profesor") {
         router.replace("/profesor");
         return;
       }
 
-      // Alumno
+      // 9. Alumno
       if (rol === "alumno") {
         router.replace("/panel");
         return;
       }
 
-      // Rol desconocido
+      // Cualquier otro rol ya no forma parte
+      // de esta versión de TutorIA.
       await signOut(auth);
 
       setError(
-        "Tu cuenta tiene un rol no reconocido. Contacta al administrador."
+        "Tu cuenta no tiene un rol válido para esta plataforma."
       );
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(
         "Error al iniciar sesión:",
         err
       );
 
+      const firebaseError = err as {
+        code?: string;
+      };
+
       if (
-        err.code === "auth/invalid-credential" ||
-        err.code === "auth/user-not-found" ||
-        err.code === "auth/wrong-password"
+        firebaseError.code === "auth/invalid-credential" ||
+        firebaseError.code === "auth/user-not-found" ||
+        firebaseError.code === "auth/wrong-password"
       ) {
         setError(
           "Correo o contraseña incorrectos."
         );
 
       } else if (
-        err.code === "auth/invalid-email"
+        firebaseError.code === "auth/invalid-email"
       ) {
         setError(
           "El correo electrónico no es válido."
         );
 
       } else if (
-        err.code === "auth/too-many-requests"
+        firebaseError.code === "auth/too-many-requests"
       ) {
         setError(
           "Demasiados intentos. Inténtalo nuevamente más tarde."
+        );
+
+      } else if (
+        firebaseError.code === "auth/network-request-failed"
+      ) {
+        setError(
+          "No se pudo conectar con Firebase. Revisa tu conexión a Internet."
         );
 
       } else {
@@ -208,11 +201,11 @@ export default function LoginPage() {
           </h1>
 
           <p className="mt-2 font-medium text-blue-600">
-            Plataforma Educativa Comunal
+            Colegio Antares
           </p>
 
           <p className="mt-1 text-sm text-slate-500">
-            Acceso para estudiantes, docentes y administradores
+            Acceso para estudiantes y profesores
           </p>
 
         </div>
@@ -223,7 +216,6 @@ export default function LoginPage() {
         >
 
           <div>
-
             <label className="mb-2 block font-medium text-slate-700">
               Correo electrónico
             </label>
@@ -239,11 +231,9 @@ export default function LoginPage() {
               required
               className="w-full rounded-xl border border-slate-300 p-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
-
           </div>
 
           <div>
-
             <label className="mb-2 block font-medium text-slate-700">
               Contraseña
             </label>
@@ -259,7 +249,6 @@ export default function LoginPage() {
               required
               className="w-full rounded-xl border border-slate-300 p-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
-
           </div>
 
           {error && (
@@ -282,7 +271,7 @@ export default function LoginPage() {
 
         <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50 p-3 text-center">
           <p className="text-sm text-blue-800">
-            🏫 Plataforma destinada a comunidades educativas
+            🏫 Plataforma educativa del Colegio Antares
           </p>
         </div>
 
@@ -298,14 +287,12 @@ export default function LoginPage() {
         </p>
 
         <p className="mt-3 text-center">
-
           <Link
             href="/"
             className="text-slate-500 hover:underline"
           >
             ← Volver a TutorIA
           </Link>
-
         </p>
 
       </div>

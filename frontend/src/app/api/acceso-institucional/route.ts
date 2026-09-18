@@ -1,15 +1,24 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 
-import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
+import {
+  getAdminAuth,
+  getAdminDb,
+} from "@/lib/firebase-admin";
 
 export const runtime = "nodejs";
 
-function clavesCoinciden(recibida: string, configurada: string) {
+function clavesCoinciden(
+  recibida: string,
+  configurada: string
+) {
   const a = Buffer.from(recibida);
   const b = Buffer.from(configurada);
 
-  return a.length === b.length && timingSafeEqual(a, b);
+  return (
+    a.length === b.length &&
+    timingSafeEqual(a, b)
+  );
 }
 
 export async function POST(request: Request) {
@@ -19,48 +28,84 @@ export async function POST(request: Request) {
       claveInstitucional?: string;
     };
 
-    const claveConfigurada = process.env.DAEM_ACCESS_KEY;
-    const claveRecibida = body.claveInstitucional?.trim() ?? "";
+    // Clave institucional exclusiva del Colegio Antares
+    const claveConfigurada =
+      process.env.ANTARES_ACCESS_KEY;
+
+    const claveRecibida =
+      body.claveInstitucional?.trim() ?? "";
 
     if (
       !claveConfigurada ||
       !claveRecibida ||
-      !clavesCoinciden(claveRecibida, claveConfigurada)
+      !clavesCoinciden(
+        claveRecibida,
+        claveConfigurada
+      )
     ) {
       return NextResponse.json(
-        { error: "La clave institucional no es válida." },
-        { status: 403 }
+        {
+          error:
+            "La clave institucional no es válida.",
+        },
+        {
+          status: 403,
+        }
       );
     }
 
-    // Permite comprobar la clave antes de crear la cuenta para no dejar
-    // usuarios huérfanos cuando alguien se equivoca al escribirla.
+    // Permite comprobar la clave antes de crear
+    // la cuenta.
     if (!body.idToken) {
-      return NextResponse.json({ claveValida: true });
+      return NextResponse.json({
+        claveValida: true,
+      });
     }
 
-    const decodedToken = await getAdminAuth().verifyIdToken(body.idToken);
+    // Verificar usuario con Firebase Admin
+    const decodedToken =
+      await getAdminAuth().verifyIdToken(
+        body.idToken
+      );
 
-    await getAdminDb().collection("usuarios").doc(decodedToken.uid).update({
+    // Autorizar cuenta del Colegio Antares
+    await getAdminDb()
+      .collection("usuarios")
+      .doc(decodedToken.uid)
+      .update({
+        autorizado: true,
+        activo: true,
+        accesoInstitucional: true,
+        establecimientoId:
+          "colegio-antares",
+        autorizadoEn: new Date(),
+      });
+
+    return NextResponse.json({
       autorizado: true,
-      activo: true,
-      accesoInstitucional: true,
-      autorizadoEn: new Date(),
     });
 
-    return NextResponse.json({ autorizado: true });
   } catch (error) {
-    console.error("Error autorizando acceso institucional:", error);
+    console.error(
+      "Error autorizando acceso institucional:",
+      error
+    );
 
     const mensaje =
       error instanceof Error &&
-      error.message.startsWith("Configuración institucional incompleta:")
+      error.message.startsWith(
+        "Configuración institucional incompleta:"
+      )
         ? error.message
         : "No se pudo validar el acceso institucional.";
 
     return NextResponse.json(
-      { error: mensaje },
-      { status: 500 }
+      {
+        error: mensaje,
+      },
+      {
+        status: 500,
+      }
     );
   }
 }

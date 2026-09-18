@@ -28,31 +28,9 @@ type DatosProfesor = {
   rol?: string;
   curso?: string;
   establecimientoId?: string;
-  daemId?: string;
   autorizado?: boolean;
   activo?: boolean;
 };
-
-const ESTABLECIMIENTOS: Record<string, string> = {
-  "liceo-pelarco": "Liceo de Pelarco",
-  "wilibaldo-nunez": "Wilibaldo Núñez",
-  "hernan-ciudad-inostroza": "Hernán Ciudad Inostroza",
-  "pablo-correa-montt": "Pablo Correa Montt",
-  "pangue-arriba": "Escuela Pangue Arriba",
-};
-
-function obtenerNombreEstablecimiento(
-  establecimientoId?: string
-) {
-  if (!establecimientoId) {
-    return "Establecimiento no asignado";
-  }
-
-  return (
-    ESTABLECIMIENTOS[establecimientoId] ||
-    establecimientoId
-  );
-}
 
 export default function ProfesorPage() {
   const router = useRouter();
@@ -142,10 +120,7 @@ export default function ProfesorPage() {
     auth.currentUser?.email ||
     "No registrado";
 
-  const nombreEstablecimiento =
-    obtenerNombreEstablecimiento(
-      profesor?.establecimientoId
-    );
+  const nombreEstablecimiento = "Colegio Antares";
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -171,7 +146,7 @@ export default function ProfesorPage() {
               </h1>
 
               <p className="text-sm text-slate-500">
-                Plataforma Educativa Comunal
+                Colegio Antares
               </p>
 
             </div>
@@ -249,7 +224,7 @@ export default function ProfesorPage() {
                   </p>
 
                   <p className="mt-2 text-sm text-blue-100">
-                    Plataforma Educativa Comunal
+                    Colegio Antares
                   </p>
 
                 </div>
@@ -281,11 +256,7 @@ export default function ProfesorPage() {
               <Info
                 emoji="🏛️"
                 titulo="Administración"
-                valor={
-                  profesor?.daemId === "pelarco"
-                    ? "DAEM Pelarco"
-                    : "TutorIA"
-                }
+                valor="Colegio Antares"
               />
 
             </div>
@@ -674,11 +645,7 @@ export default function ProfesorPage() {
 
                 <PerfilDato
                   titulo="Administración"
-                  valor={
-                    profesor?.daemId === "pelarco"
-                      ? "DAEM Pelarco"
-                      : "TutorIA"
-                  }
+                  valor="Colegio Antares"
                 />
 
               </div>
